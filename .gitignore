@@ -1,0 +1,29 @@
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Output data (keep structure, ignore actual exports)
+data/*.csv
+data/*.json
+!data/.gitkeep
+
+# Distribution
+dist/
+build/
+*.egg-info/
