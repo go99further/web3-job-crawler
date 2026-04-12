@@ -1,0 +1,49 @@
+name: Daily Web3 Job Crawl
+
+on:
+  schedule:
+    # Run twice daily: 8:00 UTC and 20:00 UTC
+    - cron: '0 8 * * *'
+    - cron: '0 20 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run crawlers (loose mode)
+        run: python main.py --loose --output-dir data
+
+      - name: Commit and push results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Only commit if there are new files
+          if [ -n "$(git status --porcelain data/)" ]; then
+            git add data/
+            DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
+            CSV_COUNT=$(ls -1 data/*.csv 2>/dev/null | wc -l)
+            git commit -m "crawl: ${DATE} — ${CSV_COUNT} export files"
+            git push
+            echo "✅ New results committed and pushed"
+          else
+            echo "ℹ️ No new data to commit"
+          fi

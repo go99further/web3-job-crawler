@@ -7,9 +7,15 @@ Three-layer filter:
   1. Web3 tech keyword whitelist  (is it a Web3 job?)
   2. Junior / entry-level check   (is it beginner-friendly?)
   3. Remote keyword whitelist     (is it remote-friendly?)
+
+Set LOOSE_MODE = True to skip the junior-keyword requirement and only exclude
+explicitly senior-titled roles. This typically returns 3-10x more results.
 """
 
 from __future__ import annotations
+
+# Global filter mode flag — set by main.py based on --loose CLI arg
+LOOSE_MODE: bool = False
 
 # ---------------------------------------------------------------------------
 # Web3 tech keyword whitelist (match ANY one → considered Web3 job)
@@ -166,8 +172,15 @@ def filter_web3_job(
     description: str,
     tags: list[str],
     location: str | None,
+    *,
+    loose: bool | None = None,
 ) -> dict[str, bool | list[str]]:
-    """Run all three filter layers on a single job listing.
+    """Run all filter layers on a single job listing.
+
+    Args:
+        loose: If True, skip the junior-keyword requirement — only exclude
+               jobs whose title contains senior/lead/director keywords.
+               If None, reads from global LOOSE_MODE flag.
 
     Returns:
         {
@@ -176,21 +189,35 @@ def filter_web3_job(
             "reasons": list[str]     # Rejection reasons if failed
         }
     """
+    use_loose = loose if loose is not None else LOOSE_MODE
     reasons: list[str] = []
 
     if not is_web3_job(title, description, tags):
         reasons.append("not_web3")
         return {"pass": False, "extra_tags": [], "reasons": reasons}
 
-    if not is_junior_job(title, description):
-        reasons.append("not_junior")
-        return {"pass": False, "extra_tags": [], "reasons": reasons}
+    if use_loose:
+        # Loose mode: only reject if title explicitly says senior/lead/etc.
+        title_lower = title.lower()
+        if any(kw in title_lower for kw in SENIOR_BLACKLIST):
+            reasons.append("title_is_senior")
+            return {"pass": False, "extra_tags": [], "reasons": reasons}
+    else:
+        # Strict mode: must match junior keyword AND not match senior
+        if not is_junior_job(title, description):
+            reasons.append("not_junior")
+            return {"pass": False, "extra_tags": [], "reasons": reasons}
 
     if not is_remote_job(title, description, location):
         reasons.append("not_remote")
         return {"pass": False, "extra_tags": [], "reasons": reasons}
 
     extra_tags = get_ai_friendly_tags(description, title)
+
+    # In loose mode, tag jobs that DO have junior keywords for easy identification
+    if use_loose and is_junior_job(title, description):
+        extra_tags.append("Junior-Confirmed")
+
     return {"pass": True, "extra_tags": extra_tags, "reasons": []}
 
 

@@ -3,8 +3,9 @@
 web3-job-crawler — Scrape Web3 junior/entry-level remote jobs from multiple sources.
 
 Usage:
-    python main.py                  # Run all crawlers, show table, export CSV + JSON
-    python main.py --table-only     # Run all crawlers, show table only (no file export)
+    python main.py                  # Strict mode: Web3 + Junior + Remote
+    python main.py --loose          # Loose mode: Web3 + Remote (exclude senior titles only)
+    python main.py --table-only     # Show table only, no file export
     python main.py --source web3    # Run only web3.career crawler
     python main.py --source tg      # Run only Telegram crawler
 """
@@ -28,6 +29,7 @@ def run_crawlers(source: str | None = None) -> list:
         "web3": ("web3.career", "src.crawlers.web3_career", "fetch_web3_career_jobs"),
         "remote3": ("remote3.co", "src.crawlers.remote3", "fetch_remote3_jobs"),
         "crypto": ("cryptojobs.com", "src.crawlers.crypto_jobs", "fetch_crypto_jobs"),
+        "crypto2": ("cryptocurrencyjobs.co", "src.crawlers.cryptocurrencyjobs", "fetch_cryptocurrencyjobs"),
         "tg": ("Telegram", "src.crawlers.telegram_preview", "fetch_telegram_jobs"),
     }
 
@@ -62,12 +64,26 @@ def run_crawlers(source: str | None = None) -> list:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Scrape Web3 junior/entry-level remote job listings"
+        description="Scrape Web3 junior/entry-level remote job listings",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python main.py                 # Strict: only junior/entry-level Web3 remote jobs
+  python main.py --loose         # Loose: all Web3 remote jobs (excludes senior titles)
+  python main.py --loose --source web3   # Loose mode, web3.career only
+  python main.py --table-only    # Show results without exporting files
+""",
     )
     parser.add_argument(
         "--source",
-        choices=["web3", "remote3", "crypto", "tg"],
+        choices=["web3", "remote3", "crypto", "crypto2", "tg"],
         help="Run only a specific crawler (default: all)",
+    )
+    parser.add_argument(
+        "--loose",
+        action="store_true",
+        help="Loose filter: skip junior-keyword requirement, only exclude senior titles. "
+             "Returns 3-10x more results.",
     )
     parser.add_argument(
         "--table-only",
@@ -81,9 +97,15 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # Set global filter mode
+    import src.filter as _filter
+    _filter.LOOSE_MODE = args.loose
+
+    mode_label = "LOOSE (Web3 + Remote, exclude senior)" if args.loose else "STRICT (Web3 + Junior + Remote)"
+
     print("=" * 60)
     print("  web3-job-crawler")
-    print("  Scraping Web3 Junior/Entry-Level Remote Jobs")
+    print(f"  Filter: {mode_label}")
     print("=" * 60)
 
     # Run crawlers
@@ -101,6 +123,19 @@ def main() -> None:
     from src.exporter import print_table
     print_table(unique)
 
+    # Save to SQLite for deduplication and history tracking
+    from src.storage import upsert_jobs, get_stats
+    if unique:
+        result = upsert_jobs(unique)
+        stats = get_stats()
+        print(f"\nDatabase: {stats['total']} total jobs tracked "
+              f"({result['new']} new, {result['existing']} seen before)")
+        if stats["by_platform"]:
+            breakdown = ", ".join(
+                f"{k}: {v}" for k, v in stats["by_platform"].items()
+            )
+            print(f"  By source: {breakdown}")
+
     # Export files
     if not args.table_only and unique:
         from src.exporter import export_csv, export_json
@@ -112,8 +147,8 @@ def main() -> None:
         print(f"  JSON: {json_path}")
 
     if not unique:
-        print("\nTip: The Web3 junior remote job market is competitive.")
-        print("     Try again later — new listings appear daily!")
+        print("\nTip: Try --loose mode for more results!")
+        print("     python main.py --loose")
 
 
 if __name__ == "__main__":

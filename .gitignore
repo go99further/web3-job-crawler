@@ -18,10 +18,11 @@ env/
 .DS_Store
 Thumbs.db
 
-# Output data (keep structure, ignore actual exports)
-data/*.csv
-data/*.json
-!data/.gitkeep
+# Output data — tracked by GitHub Actions daily crawl
+# Local exports are committed so results accumulate over time
+
+# SQLite database (local only, not committed)
+data/jobs.db
 
 # Distribution
 dist/
