@@ -32,6 +32,7 @@ def run_crawlers(source: str | None = None) -> list:
         "crypto2": ("cryptocurrencyjobs.co", "src.crawlers.cryptocurrencyjobs", "fetch_cryptocurrencyjobs"),
         "twitter": ("X/Twitter", "src.crawlers.twitter", "fetch_twitter_jobs"),
         "builtin": ("builtin.com", "src.crawlers.builtin", "fetch_builtin_jobs"),
+        "discord": ("Discord", "src.crawlers.discord", "fetch_discord_jobs"),
         "tg": ("Telegram", "src.crawlers.telegram_preview", "fetch_telegram_jobs"),
     }
 
@@ -78,7 +79,7 @@ Examples:
     )
     parser.add_argument(
         "--source",
-        choices=["web3", "remote3", "crypto", "crypto2", "twitter", "builtin", "tg"],
+        choices=["web3", "remote3", "crypto", "crypto2", "twitter", "builtin", "discord", "tg"],
         help="Run only a specific crawler (default: all)",
     )
     parser.add_argument(
