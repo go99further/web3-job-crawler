@@ -152,12 +152,32 @@ def send_new_jobs_email(
     msg.attach(MIMEText(html, "html"))
 
     try:
-        with smtplib.SMTP(config["smtp_server"], config["smtp_port"]) as server:
-            server.starttls()
-            server.login(config["sender_email"], config["sender_password"])
-            server.send_message(msg)
+        port = config["smtp_port"]
+        if port == 465:
+            # SSL mode (port 465)
+            with smtplib.SMTP_SSL(config["smtp_server"], port, timeout=30) as server:
+                server.login(config["sender_email"], config["sender_password"])
+                server.send_message(msg)
+        else:
+            # STARTTLS mode (port 587)
+            with smtplib.SMTP(config["smtp_server"], port, timeout=30) as server:
+                server.starttls()
+                server.login(config["sender_email"], config["sender_password"])
+                server.send_message(msg)
         print(f"  [email] Sent to {config['recipient_email']} ({len(new_jobs)} new jobs)")
         return True
     except Exception as exc:
+        # Retry with SSL port 465 if STARTTLS (587) failed
+        if port != 465:
+            try:
+                print(f"  [email] Port {port} failed, retrying with SSL port 465...")
+                with smtplib.SMTP_SSL(config["smtp_server"], 465, timeout=30) as server:
+                    server.login(config["sender_email"], config["sender_password"])
+                    server.send_message(msg)
+                print(f"  [email] Sent to {config['recipient_email']} ({len(new_jobs)} new jobs)")
+                return True
+            except Exception as exc2:
+                print(f"  [email] Failed on both ports: {exc2}")
+                return False
         print(f"  [email] Failed to send: {exc}")
         return False
