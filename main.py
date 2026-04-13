@@ -32,6 +32,7 @@ def run_crawlers(source: str | None = None) -> list:
         "crypto2": ("cryptocurrencyjobs.co", "src.crawlers.cryptocurrencyjobs", "fetch_cryptocurrencyjobs"),
         "twitter": ("X/Twitter", "src.crawlers.twitter", "fetch_twitter_jobs"),
         "builtin": ("builtin.com", "src.crawlers.builtin", "fetch_builtin_jobs"),
+        "greenhouse": ("Greenhouse (10 companies)", "src.crawlers.greenhouse", "fetch_greenhouse_jobs"),
         "tg": ("Telegram", "src.crawlers.telegram_preview", "fetch_telegram_jobs"),
         # Discord requires bot admin access — only runs with --source discord
         "discord": ("Discord", "src.crawlers.discord", "fetch_discord_jobs"),
@@ -41,11 +42,10 @@ def run_crawlers(source: str | None = None) -> list:
     if source is None:
         targets = {k: v for k, v in crawlers.items() if k != "discord"}
     elif source not in crawlers:
-            print(f"Unknown source '{source}'. Available: {', '.join(crawlers.keys())}")
-            sys.exit(1)
-        targets = {source: crawlers[source]}
+        print(f"Unknown source '{source}'. Available: {', '.join(crawlers.keys())}")
+        sys.exit(1)
     else:
-        targets = crawlers
+        targets = {source: crawlers[source]}
 
     total = len(targets)
     for idx, (key, (label, module_path, func_name)) in enumerate(targets.items(), 1):
@@ -81,7 +81,7 @@ Examples:
     )
     parser.add_argument(
         "--source",
-        choices=["web3", "remote3", "crypto", "crypto2", "twitter", "builtin", "discord", "tg"],
+        choices=["web3", "remote3", "crypto", "crypto2", "twitter", "builtin", "greenhouse", "tg", "discord"],
         help="Run only a specific crawler (default: all)",
     )
     parser.add_argument(
@@ -99,6 +99,12 @@ Examples:
         "--output-dir",
         default="data",
         help="Output directory for CSV/JSON exports (default: data/)",
+    )
+    parser.add_argument(
+        "--notify",
+        action="store_true",
+        help="Send email notification with new job listings. "
+             "Requires SENDER_EMAIL and SENDER_PASSWORD in .env",
     )
     args = parser.parse_args()
 
@@ -129,7 +135,7 @@ Examples:
     print_table(unique)
 
     # Save to SQLite for deduplication and history tracking
-    from src.storage import upsert_jobs, get_stats
+    from src.storage import upsert_jobs, get_stats, get_new_jobs
     if unique:
         result = upsert_jobs(unique)
         stats = get_stats()
@@ -140,6 +146,23 @@ Examples:
                 f"{k}: {v}" for k, v in stats["by_platform"].items()
             )
             print(f"  By source: {breakdown}")
+
+        # Email notification
+        if args.notify and result["new"] > 0:
+            from src.notify import send_new_jobs_email
+            new_rows = get_new_jobs()
+            email_jobs = [
+                {
+                    "source_platform": r["source_platform"],
+                    "title": r["title"],
+                    "company": r["company"],
+                    "location": r.get("location", ""),
+                    "url": r["source_url"],
+                    "tags": r.get("tags", ""),
+                }
+                for r in new_rows
+            ]
+            send_new_jobs_email(email_jobs, stats)
 
     # Export files
     if not args.table_only and unique:
