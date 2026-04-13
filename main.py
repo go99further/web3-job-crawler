@@ -32,13 +32,15 @@ def run_crawlers(source: str | None = None) -> list:
         "crypto2": ("cryptocurrencyjobs.co", "src.crawlers.cryptocurrencyjobs", "fetch_cryptocurrencyjobs"),
         "twitter": ("X/Twitter", "src.crawlers.twitter", "fetch_twitter_jobs"),
         "builtin": ("builtin.com", "src.crawlers.builtin", "fetch_builtin_jobs"),
-        "discord": ("Discord", "src.crawlers.discord", "fetch_discord_jobs"),
         "tg": ("Telegram", "src.crawlers.telegram_preview", "fetch_telegram_jobs"),
+        # Discord requires bot admin access — only runs with --source discord
+        "discord": ("Discord", "src.crawlers.discord", "fetch_discord_jobs"),
     }
 
-    # Determine which crawlers to run
-    if source:
-        if source not in crawlers:
+    # Discord is opt-in only (requires bot to be admin-invited to servers)
+    if source is None:
+        targets = {k: v for k, v in crawlers.items() if k != "discord"}
+    elif source not in crawlers:
             print(f"Unknown source '{source}'. Available: {', '.join(crawlers.keys())}")
             sys.exit(1)
         targets = {source: crawlers[source]}
