@@ -165,14 +165,24 @@ def _extract_title(text: str) -> str | None:
         m = pattern.search(text)
         if m:
             title = m.group(1).strip().rstrip(".,!?|—-()").strip()
+            # Reject generic non-titles
+            if title.lower().startswith("web3 jobs"):
+                continue
+            if title.lower().startswith("highlights"):
+                continue
+            if title.lower().startswith("in web3"):
+                continue
             if 3 <= len(title) <= 100:
                 return title
 
-    # Fallback: first line that looks like a job title
+    # Fallback: first line that looks like a job title (must be specific)
     for line in text.splitlines():
         line = line.strip()
         if (
             10 <= len(line) <= 80
+            and line[0].isupper()
+            and not line.lower().startswith("web3 jobs")
+            and not line.lower().startswith("this is")
             and any(
                 kw in line.lower()
                 for kw in [
@@ -183,7 +193,6 @@ def _extract_title(text: str) -> str | None:
             )
         ):
             return line.rstrip(".,!?|—-()").strip()
-
     return None
 
 

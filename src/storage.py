@@ -59,16 +59,17 @@ def upsert_jobs(jobs: list[Any], db_path: str = DB_PATH) -> dict[str, int]:
     new_count = 0
     existing_count = 0
 
-    # Reset is_new flag for all existing records
-    conn.execute("UPDATE jobs SET is_new = 0")
+    try:
+        # Reset is_new flag for all existing records
+        conn.execute("UPDATE jobs SET is_new = 0")
 
-    for job in jobs:
-        source_url = getattr(job, "source_url", "")
-        tags = getattr(job, "tags", [])
-        clean_tags = [t for t in tags if not t.startswith("telegram:")]
+        for job in jobs:
+            source_url = getattr(job, "source_url", "")
+            tags = getattr(job, "tags", [])
+            clean_tags = [t for t in tags if not t.startswith("telegram:")]
 
-        try:
-            conn.execute(
+            try:
+                conn.execute(
                 """
                 INSERT INTO jobs (
                     source_url, source_platform, title, company,
@@ -98,8 +99,9 @@ def upsert_jobs(jobs: list[Any], db_path: str = DB_PATH) -> dict[str, int]:
             )
             existing_count += 1
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+    finally:
+        conn.close()
 
     return {
         "new": new_count,

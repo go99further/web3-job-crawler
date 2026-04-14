@@ -1,34 +1,35 @@
 # web3-job-crawler
 
-Automated scraper for **Web3 junior / entry-level remote jobs** across multiple platforms.
+Automated scraper for **Web3 remote jobs** across 8 data sources, with smart filtering and email notifications.
 
 Built for career changers (especially from AI/ML backgrounds) who want to break into Web3.
 
 ## What It Does
 
-Scrapes **5 data sources** every run and applies a **3-layer filter**:
+Scrapes **8 data sources** every run, applies a multi-layer filter, and exports results:
 
 ```
-Raw listings  →  Web3 keyword check  →  Junior/Entry-level check  →  Remote check  →  Clean results
-  (200+)           (is it Web3?)       (is it beginner-friendly?)   (is it remote?)     (5-36+)
+200+ raw listings → Web3 check → Junior/Senior check → Remote check → 170+ clean results
 ```
 
 ### Data Sources
 
-| Source | URL | Method |
-|--------|-----|--------|
-| web3.career | https://web3.career | HTML scraping |
-| remote3.co | https://remote3.co/web3-jobs | HTML scraping |
-| cryptojobs.com | https://cryptojobs.com | HTML scraping |
-| cryptocurrencyjobs.co | https://cryptocurrencyjobs.co | HTML scraping |
-| Telegram | `t.me/s/{channel}` public preview | HTML + regex |
+| # | Source | Method | Typical Results |
+|---|--------|--------|-----------------|
+| 1 | **Greenhouse** (Coinbase, Ripple, etc.) | JSON API (free, no auth) | ~88 |
+| 2 | **X/Twitter** (@web3career, @CryptoJobsList) | Syndication API (no auth) | ~38 |
+| 3 | **cryptocurrencyjobs.co** | HTML scraping | ~20 |
+| 4 | **builtin.com** | HTML scraping | ~15 |
+| 5 | **cryptojobs.com** | HTML scraping | ~6 |
+| 6 | **web3.career** | HTML scraping | ~4 |
+| 7 | **remote3.co** | HTML scraping | ~4 |
+| 8 | **Telegram** (public channels) | HTML + regex | ~4 |
+| | **Total** | | **~179** |
 
 ### Smart Tagging
 
-Jobs that match career-changer-friendly signals get extra tags:
-
-- **AI-Friendly** — mentions AI/ML/Python background, transferable skills, or welcomes career changers
-- **Mentorship** — offers mentorship, training, pair programming, or onboarding support
+- **AI-Friendly** — mentions AI/ML/Python background, transferable skills
+- **Mentorship** — offers mentorship, training, pair programming
 - **Junior-Confirmed** — explicitly contains junior/entry-level keywords (in loose mode)
 
 ## Quick Start
@@ -41,76 +42,67 @@ cd web3-job-crawler
 # Install dependencies
 pip install -r requirements.txt
 
-# Run (strict mode — only junior/entry-level jobs)
-python main.py
+# Copy and edit config
+cp .env.example .env
+# Edit .env with your email settings (optional, for notifications)
 
-# Run (loose mode — all Web3 remote jobs, excluding senior titles)
+# Run
 python main.py --loose
-```
-
-### Output Example (loose mode, 36 results)
-
-```
-============================================================
-  web3-job-crawler
-  Filter: LOOSE (Web3 + Remote, exclude senior)
-============================================================
-
-[1/5] Scraping web3.career...       -> 4 jobs (16.9s)
-[2/5] Scraping remote3.co...        -> 4 jobs (22.8s)
-[3/5] Scraping cryptojobs.com...    -> 4 jobs (12.6s)
-[4/5] Scraping cryptocurrencyjobs.. -> 19 jobs (25.6s)
-[5/5] Scraping Telegram...          -> 5 jobs (5.8s)
-
-Total: 36 jobs  |  AI-Friendly: 27  |  Mentorship: 3
-
-Database: 36 total jobs tracked (36 new, 0 seen before)
-
-Exported to:
-  CSV:  data/web3_jobs_20260412.csv
-  JSON: data/web3_jobs_20260412.json
 ```
 
 ## Usage
 
 ```bash
-# Strict mode: only junior/entry-level Web3 remote jobs
-python main.py
-
-# Loose mode: all Web3 remote jobs (excludes senior titles only) — recommended
+# Loose mode (recommended) — all Web3 remote jobs, exclude senior titles
 python main.py --loose
 
+# Strict mode — only junior/entry-level Web3 remote jobs
+python main.py
+
 # Run specific source only
-python main.py --source web3       # web3.career only
-python main.py --source remote3    # remote3.co only
-python main.py --source crypto     # cryptojobs.com only
-python main.py --source crypto2    # cryptocurrencyjobs.co only
-python main.py --source tg         # Telegram only
+python main.py --source greenhouse  # Coinbase, Ripple, etc.
+python main.py --source twitter     # X/Twitter
+python main.py --source crypto2     # cryptocurrencyjobs.co
+python main.py --source builtin     # builtin.com
+python main.py --source crypto      # cryptojobs.com
+python main.py --source web3        # web3.career
+python main.py --source remote3     # remote3.co
+python main.py --source tg          # Telegram
 
-# Show table only, no file export
-python main.py --table-only
+# With email notification
+python main.py --loose --notify
 
-# Custom output directory
-python main.py --output-dir ./my_exports
+# Table only, no file export
+python main.py --loose --table-only
 ```
 
 ## Two Filter Modes
 
 ### Strict Mode (default)
-All three layers must pass:
-1. **Web3 keywords** (60+ terms) — must match at least one
-2. **Junior keywords** — must match AND must NOT match senior blacklist
-3. **Remote keywords** — must match at least one
+1. Must match Web3 keywords (60+ terms)
+2. Must match junior keywords AND not match senior blacklist
+3. Must match remote keywords
 
-Typical result: **3-5 jobs** (very selective)
+**Result: ~5 jobs** (very selective)
 
-### Loose Mode (`--loose`) — Recommended
-Only two layers:
-1. **Web3 keywords** — must match at least one
-2. **Remote keywords** — must match at least one
-3. Title must NOT contain senior/lead/director (but no junior keyword required)
+### Loose Mode (`--loose`)
+1. Must match Web3 keywords
+2. Title must NOT contain senior/lead/director
+3. Must match remote keywords
 
-Typical result: **20-40 jobs** (much broader, with `Junior-Confirmed` tag on verified entry-level roles)
+**Result: ~179 jobs** (much broader, with `Junior-Confirmed` tag on verified entry-level roles)
+
+## Features
+
+- **8 data sources** — Greenhouse, X/Twitter, cryptocurrencyjobs.co, builtin.com, cryptojobs.com, web3.career, remote3.co, Telegram
+- **Greenhouse API** — direct access to Coinbase, Ripple, BitGo, Fireblocks, FalconX, Alchemy, ConsenSys, Ava Labs, Paradigm, Figment
+- **Smart filter** — Web3 + Junior + Remote triple filter with loose/strict modes
+- **AI career-changer tagging** — auto-detects jobs friendly to AI/ML switchers
+- **SQLite dedup** — tracks job history, marks new listings
+- **CSV + JSON export** — timestamped output files
+- **Email notifications** — QQ Mail / Gmail SMTP support
+- **GitHub Actions** — auto-crawl twice daily with email notifications
+- **Zero API keys needed** — all sources are public (except optional Discord)
 
 ## Project Structure
 
@@ -118,34 +110,41 @@ Typical result: **20-40 jobs** (much broader, with `Junior-Confirmed` tag on ver
 web3-job-crawler/
 ├── main.py                         # CLI entry point
 ├── src/
-│   ├── filter.py                   # 3-layer filter engine (60+ Web3 keywords)
+│   ├── filter.py                   # Multi-layer filter engine (60+ keywords)
 │   ├── exporter.py                 # CSV / JSON / table output
 │   ├── storage.py                  # SQLite dedup + history tracking
+│   ├── notify.py                   # Email notification (QQ Mail / Gmail)
 │   └── crawlers/
-│       ├── web3_career.py          # web3.career scraper
-│       ├── remote3.py              # remote3.co scraper
-│       ├── crypto_jobs.py          # cryptojobs.com scraper
-│       ├── cryptocurrencyjobs.py   # cryptocurrencyjobs.co scraper
-│       └── telegram_preview.py     # Telegram public channel scraper
-├── data/                           # Exported CSV/JSON files
+│       ├── greenhouse.py           # Greenhouse API (10 companies)
+│       ├── twitter.py              # X/Twitter syndication API
+│       ├── cryptocurrencyjobs.py   # cryptocurrencyjobs.co
+│       ├── builtin.py              # builtin.com
+│       ├── crypto_jobs.py          # cryptojobs.com
+│       ├── web3_career.py          # web3.career
+│       ├── remote3.py              # remote3.co
+│       ├── telegram_preview.py     # Telegram public channels
+│       └── discord.py              # Discord Bot (opt-in, requires token)
+├── data/                           # Exported CSV/JSON + SQLite
+├── .env.example                    # Config template
 ├── .github/workflows/
-│   └── daily-crawl.yml             # GitHub Actions: auto-crawl twice daily
+│   └── daily-crawl.yml             # Auto-crawl twice daily
 ├── requirements.txt
 ├── pyproject.toml
 └── LICENSE
 ```
 
-## Features
-
-- **5 data sources** — web3.career, remote3.co, cryptojobs.com, cryptocurrencyjobs.co, Telegram
-- **3-layer filter** — Web3 + Junior + Remote (strict) or Web3 + Remote (loose)
-- **AI career-changer tagging** — auto-detects jobs friendly to AI/ML background switchers
-- **SQLite dedup** — tracks job history, marks new listings, avoids duplicates
-- **CSV + JSON export** — timestamped output files for analysis
-- **GitHub Actions** — auto-crawl twice daily, results committed to repo
-- **Zero API keys needed** — all sources are public HTML pages
-
 ## Customization
+
+### Add Greenhouse Companies
+
+Edit `src/crawlers/greenhouse.py`:
+
+```python
+GREENHOUSE_COMPANIES = [
+    {"slug": "coinbase", "name": "Coinbase"},
+    {"slug": "your-company", "name": "Your Company"},  # Add here
+]
+```
 
 ### Add Telegram Channels
 
@@ -154,35 +153,22 @@ Edit `src/crawlers/telegram_preview.py`:
 ```python
 DEFAULT_WEB3_TG_CHANNELS = [
     "cryptojobslist",
-    "blockchain_jobs_remote",
-    "your_channel_here",     # Add your own
+    "your_channel_here",
 ]
 ```
 
-### Adjust Filter Sensitivity
+### Adjust Filter Keywords
 
-Edit `src/filter.py` to add/remove keywords from:
-- `WEB3_TECH_KEYWORDS` — what counts as a "Web3 job"
-- `JUNIOR_KEYWORDS` — what counts as "entry-level"
-- `SENIOR_BLACKLIST` — what to exclude
-- `REMOTE_KEYWORDS` — what counts as "remote"
+Edit `src/filter.py` — modify `WEB3_TECH_KEYWORDS`, `JUNIOR_KEYWORDS`, `SENIOR_BLACKLIST`, `REMOTE_KEYWORDS`.
 
 ## Tech Stack
 
-- **Python 3.11+** — no legacy compatibility burden
-- **httpx** — modern HTTP client with retry support
-- **BeautifulSoup4 + lxml** — robust HTML parsing
-- **Pydantic** — data validation & structured models
-- **SQLite** — built-in, zero-config local database
-- **GitHub Actions** — free CI/CD for automated crawling
-
-## Why This Exists
-
-The Web3 job market is noisy. Most job boards mix senior roles, on-site positions, and non-crypto jobs together. This tool cuts through the noise for people who are:
-
-- Transitioning from AI/ML/traditional tech into Web3
-- Looking for their first Web3 role (junior / intern / entry-level)
-- Only interested in remote positions
+- **Python 3.11+**
+- **httpx** — HTTP client with retry
+- **BeautifulSoup4 + lxml** — HTML parsing
+- **Pydantic** — data validation
+- **SQLite** — built-in local database
+- **GitHub Actions** — automated crawling
 
 ## License
 
