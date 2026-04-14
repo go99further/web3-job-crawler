@@ -6,7 +6,7 @@ Built for career changers (especially from AI/ML backgrounds) who want to break 
 
 ## What It Does
 
-Scrapes **8 data sources** every run, applies a multi-layer filter, and exports results:
+Scrapes **10 data sources** every run, applies a multi-layer filter, and exports results:
 
 ```
 200+ raw listings → Web3 check → Junior/Senior check → Remote check → 170+ clean results
@@ -16,15 +16,17 @@ Scrapes **8 data sources** every run, applies a multi-layer filter, and exports 
 
 | # | Source | Method | Typical Results |
 |---|--------|--------|-----------------|
-| 1 | **Greenhouse** (Coinbase, Ripple, etc.) | JSON API (free, no auth) | ~88 |
+| 1 | **Greenhouse** (Coinbase, Ripple, LayerZero, etc.) | JSON API (free, no auth) | ~90 |
 | 2 | **X/Twitter** (@web3career, @CryptoJobsList) | Syndication API (no auth) | ~38 |
 | 3 | **cryptocurrencyjobs.co** | HTML scraping | ~20 |
-| 4 | **builtin.com** | HTML scraping | ~15 |
-| 5 | **cryptojobs.com** | HTML scraping | ~6 |
-| 6 | **web3.career** | HTML scraping | ~4 |
-| 7 | **remote3.co** | HTML scraping | ~4 |
-| 8 | **Telegram** (public channels) | HTML + regex | ~4 |
-| | **Total** | | **~179** |
+| 4 | **defi.jobs** | HTML scraping | ~15 |
+| 5 | **builtin.com** | HTML scraping | ~15 |
+| 6 | **cryptojobs.com** | HTML scraping | ~6 |
+| 7 | **web3.career** | HTML scraping | ~4 |
+| 8 | **remote3.co** | HTML scraping | ~4 |
+| 9 | **crypto.jobs** | HTML scraping | ~3 |
+| 10 | **Telegram** (public channels) | HTML + regex | ~4 |
+| | **Total** | | **~200** |
 
 ### Smart Tagging
 
@@ -90,12 +92,12 @@ python main.py --loose --table-only
 2. Title must NOT contain senior/lead/director
 3. Must match remote keywords
 
-**Result: ~179 jobs** (much broader, with `Junior-Confirmed` tag on verified entry-level roles)
+**Result: ~200 jobs** (much broader, with `Junior-Confirmed` tag on verified entry-level roles)
 
 ## Features
 
-- **8 data sources** — Greenhouse, X/Twitter, cryptocurrencyjobs.co, builtin.com, cryptojobs.com, web3.career, remote3.co, Telegram
-- **Greenhouse API** — direct access to Coinbase, Ripple, BitGo, Fireblocks, FalconX, Alchemy, ConsenSys, Ava Labs, Paradigm, Figment
+- **10 data sources** — Greenhouse (13 companies), X/Twitter, cryptocurrencyjobs.co, defi.jobs, builtin.com, cryptojobs.com, crypto.jobs, web3.career, remote3.co, Telegram
+- **Greenhouse API** — direct access to Coinbase, Ripple, BitGo, Fireblocks, FalconX, Alchemy, ConsenSys, Ava Labs, Paradigm, Figment, LayerZero, Aptos, OpenZeppelin
 - **Smart filter** — Web3 + Junior + Remote triple filter with loose/strict modes
 - **AI career-changer tagging** — auto-detects jobs friendly to AI/ML switchers
 - **SQLite dedup** — tracks job history, marks new listings
@@ -115,11 +117,13 @@ web3-job-crawler/
 │   ├── storage.py                  # SQLite dedup + history tracking
 │   ├── notify.py                   # Email notification (QQ Mail / Gmail)
 │   └── crawlers/
-│       ├── greenhouse.py           # Greenhouse API (10 companies)
+│       ├── greenhouse.py           # Greenhouse API (13 companies)
 │       ├── twitter.py              # X/Twitter syndication API
 │       ├── cryptocurrencyjobs.py   # cryptocurrencyjobs.co
+│       ├── defi_jobs.py            # defi.jobs
 │       ├── builtin.py              # builtin.com
 │       ├── crypto_jobs.py          # cryptojobs.com
+│       ├── crypto_jobs_dot_com.py  # crypto.jobs
 │       ├── web3_career.py          # web3.career
 │       ├── remote3.py              # remote3.co
 │       ├── telegram_preview.py     # Telegram public channels
@@ -173,3 +177,76 @@ Edit `src/filter.py` — modify `WEB3_TECH_KEYWORDS`, `JUNIOR_KEYWORDS`, `SENIOR
 ## License
 
 MIT
+
+---
+
+## Manual Job Search Platforms
+
+The following platforms cannot be auto-scraped (login required, JS rendering, or anti-bot protection), but are excellent sources for Web3 jobs. **Check them manually.**
+
+### Job Boards (Login Required)
+
+| Platform | URL | Search Terms |
+|----------|-----|-------------|
+| **LinkedIn** | https://linkedin.com/jobs | `web3 remote`, `blockchain junior`, `solidity intern` |
+| **AngelList / Wellfound** | https://wellfound.com/jobs | Filter: Crypto/Web3 + Remote |
+| **Indeed** | https://indeed.com | `web3 developer remote`, `blockchain entry level` |
+| **Glassdoor** | https://glassdoor.com/Job | `crypto remote`, `web3 engineer` |
+
+### Web3 Job Boards (Anti-Bot / JS Rendered)
+
+| Platform | URL | Notes |
+|----------|-----|-------|
+| **CryptoJobsList** | https://cryptojobslist.com | Large Web3 board, Cloudflare protected |
+| **Ethlance** | https://ethlance.com | Decentralized job market on Ethereum |
+| **Dework** | https://app.dework.xyz | Web3 task/bounty platform, great for first contributions |
+| **Layer3** | https://app.layer3.xyz | Web3 quests & bounties, earn while learning |
+| **Gitcoin** | https://gitcoin.co | Grants & bounties — ideal first step into Web3 |
+
+### VC Portfolio Company Pages
+
+These top crypto VCs list all their portfolio companies' open roles:
+
+| VC | Portfolio Jobs |
+|----|---------------|
+| **Paradigm** | https://jobs.paradigm.xyz |
+| **a16z Crypto** | https://a16zcrypto.com/portfolio |
+| **Polychain Capital** | https://jobs.polychain.capital |
+| **Multicoin Capital** | https://multicoin.capital/portfolio |
+
+### Community / Forums
+
+| Platform | URL | How to Use |
+|----------|-----|-----------|
+| **Hacker News** | https://news.ycombinator.com | Monthly "Who is hiring?" thread (1st of each month), search `web3 remote` |
+| **Reddit** | https://reddit.com/r/web3jobs | Web3 job subreddit |
+| **Farcaster** | https://warpcast.com | Web3 social network, teams post hiring there |
+
+### DAO / Bounty Platforms
+
+Great for getting your first Web3 experience without a formal job:
+
+| Platform | URL | Best For |
+|----------|-----|---------|
+| **Dework** | https://app.dework.xyz | DAO task management, paid bounties |
+| **Layer3** | https://app.layer3.xyz | Quests & campaigns, earn crypto |
+| **Gitcoin** | https://gitcoin.co | Open source bounties & grants |
+| **Coordinape** | https://coordinape.com | DAO contributor rewards |
+| **DAOhaus** | https://daohaus.club | Discover and join DAOs |
+
+### Top Web3 Company Career Pages
+
+These companies frequently hire and are worth checking directly:
+
+| Company | Careers Page |
+|---------|-------------|
+| Coinbase | https://www.coinbase.com/careers |
+| Binance | https://www.binance.com/en/careers |
+| ConsenSys (MetaMask) | https://consensys.io/open-roles |
+| Chainlink | https://chain.link/careers |
+| Polygon | https://polygon.technology/careers |
+| Solana Foundation | https://jobs.solana.com |
+| Alchemy | https://www.alchemy.com/careers |
+| OpenZeppelin | https://www.openzeppelin.com/jobs |
+| LayerZero | https://layerzero.network/careers |
+| Aptos Labs | https://aptoslabs.com/careers |

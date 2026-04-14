@@ -37,6 +37,9 @@ GREENHOUSE_COMPANIES: list[dict] = [
     {"slug": "avalabs", "name": "Ava Labs"},
     {"slug": "paradigm", "name": "Paradigm"},
     {"slug": "figment", "name": "Figment"},
+    {"slug": "layerzerolabs", "name": "LayerZero Labs"},
+    {"slug": "aptoslabs", "name": "Aptos Labs"},
+    {"slug": "openzeppelin", "name": "OpenZeppelin"},
 ]
 
 

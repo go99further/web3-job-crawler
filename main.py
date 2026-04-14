@@ -29,10 +29,12 @@ def run_crawlers(source: str | None = None) -> list:
         "web3": ("web3.career", "src.crawlers.web3_career", "fetch_web3_career_jobs"),
         "remote3": ("remote3.co", "src.crawlers.remote3", "fetch_remote3_jobs"),
         "crypto": ("cryptojobs.com", "src.crawlers.crypto_jobs", "fetch_crypto_jobs"),
+        "cryptodotjobs": ("crypto.jobs", "src.crawlers.crypto_jobs_dot_com", "fetch_crypto_jobs_dot_com"),
         "crypto2": ("cryptocurrencyjobs.co", "src.crawlers.cryptocurrencyjobs", "fetch_cryptocurrencyjobs"),
+        "defi": ("defi.jobs", "src.crawlers.defi_jobs", "fetch_defi_jobs"),
         "twitter": ("X/Twitter", "src.crawlers.twitter", "fetch_twitter_jobs"),
         "builtin": ("builtin.com", "src.crawlers.builtin", "fetch_builtin_jobs"),
-        "greenhouse": ("Greenhouse (10 companies)", "src.crawlers.greenhouse", "fetch_greenhouse_jobs"),
+        "greenhouse": ("Greenhouse (13 companies)", "src.crawlers.greenhouse", "fetch_greenhouse_jobs"),
         "tg": ("Telegram", "src.crawlers.telegram_preview", "fetch_telegram_jobs"),
         # Discord requires bot admin access — only runs with --source discord
         "discord": ("Discord", "src.crawlers.discord", "fetch_discord_jobs"),
@@ -81,7 +83,8 @@ Examples:
     )
     parser.add_argument(
         "--source",
-        choices=["web3", "remote3", "crypto", "crypto2", "twitter", "builtin", "greenhouse", "tg", "discord"],
+        choices=["web3", "remote3", "crypto", "cryptodotjobs", "crypto2", "defi",
+                 "twitter", "builtin", "greenhouse", "tg", "discord"],
         help="Run only a specific crawler (default: all)",
     )
     parser.add_argument(

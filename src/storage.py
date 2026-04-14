@@ -89,15 +89,15 @@ def upsert_jobs(jobs: list[Any], db_path: str = DB_PATH) -> dict[str, int]:
                     now,
                     now,
                 ),
-            )
-            new_count += 1
-        except sqlite3.IntegrityError:
-            # Already exists — update last_seen_at
-            conn.execute(
-                "UPDATE jobs SET last_seen_at = ? WHERE source_url = ?",
-                (now, source_url),
-            )
-            existing_count += 1
+                )
+                new_count += 1
+            except sqlite3.IntegrityError:
+                # Already exists — update last_seen_at
+                conn.execute(
+                    "UPDATE jobs SET last_seen_at = ? WHERE source_url = ?",
+                    (now, source_url),
+                )
+                existing_count += 1
 
         conn.commit()
     finally:
